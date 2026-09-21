@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>علوان للحوم المجمدة والفراخ الطازجة</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b6b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="علوان">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: #1a1a2e; color: #fff; padding: 12px; min-height: 100vh; padding-bottom: 80px; }
+  
+  h1 { text-align: center; color: #ff6b6b; margin-bottom: 12px; font-size: 17px; line-height: 1.4; }
+  h1 span { font-size: 13px; color: #ffd93d; display: block; margin-top: 3px; }
+  
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+  .stat-box { background: #16213e; padding: 8px 4px; border-radius: 10px; text-align: center; border: 2px solid #0f3460; }
+  .stat-box .label { font-size: 10px; color: #aaa; }
+  .stat-box .value { font-size: 16px; font-weight: bold; color: #4ecca3; margin-top: 3px; }
+  
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  
+  .product { background: #16213e; border-radius: 12px; padding: 10px; border-right: 5px solid #4ecca3; position: relative; }
+  .product.warning { border-right-color: #ffd93d; }
+  .product.danger { border-right-color: #ff4757; opacity: 0.6; }
+  
+  .product .name { font-weight: bold; font-size: 14px; margin-bottom: 5px; padding-left: 22px; }
+  .product .info { font-size: 11px; color: #aaa; line-height: 1.5; }
+  .product .info span { color: #4ecca3; font-weight: bold; }
+  .product .info .red { color: #ff6b6b; }
+  .product .info .yellow { color: #ffd93d; }
+  
+  .edit-icon {
+    position: absolute; top: 8px; left: 8px;
+    background: #0f3460; border: none; color: #4ecca3;
+    width: 20px; height: 20px; border-radius: 50%;
+    font-size: 11px; cursor: pointer; line-height: 1;
+  }
+  
+  .qty-input { width: 100%; padding: 8px; margin-top: 6px; border-radius: 6px; border: 1px solid #0f3460; background: #0f3460; color: #fff; font-size: 15px; text-align: center; }
+  .qty-input:focus { outline: 2px solid #4ecca3; }
+  
+  .btn-sell { width: 100%; padding: 10px; margin-top: 6px; background: #4ecca3; color: #1a1a2e; border: none; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; }
+  .btn-sell:disabled { background: #555; color: #999; }
+  
+  .section { background: #16213e; border-radius: 12px; padding: 10px; margin-bottom: 12px; }
+  .section h2 { font-size: 15px; color: #ffd93d; margin-bottom: 8px; }
+  
+  .log-item { background: #0f3460; padding: 7px; border-radius: 6px; margin-bottom: 5px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .log-item .time { color: #888; font-size: 10px; }
+  
+  .actions { display: flex; gap: 8px; margin-bottom: 15px; }
+  .actions button { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; }
+  .btn-report { background: #4ecca3; color: #1a1a2e; }
+  .btn-month { background: #ffd93d; color: #1a1a2e; }
+  .btn-reset { background: #ff4757; color: #fff; }
+  
+  .empty { text-align: center; color: #666; padding: 12px; font-size: 12px; }
+  
+  .floating-add {
+    position: fixed; bottom: 20px; left: 20px;
+    background: #4ecca3; color: #1a1a2e;
+    border: none; width: 60px; height: 60px;
+    border-radius: 50%; font-size: 30px; font-weight: bold;
+    cursor: pointer; box-shadow: 0 4px 15px rgba(78,204,163,0.4);
+    z-index: 50;
+  }
+  
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; padding: 15px; overflow-y: auto; }
+  .modal.active { display: block; }
+  .modal-content { background: #16213e; padding: 18px; border-radius: 12px; max-width: 500px; margin: 15px auto; }
+  .modal-content h3 { color: #ffd93d; margin-bottom: 12px; font-size: 16px; }
+  .modal-content p { margin: 5px 0; font-size: 13px; line-height: 1.5; }
+  .modal-content hr { margin: 10px 0; border: none; border-top: 1px solid #0f3460; }
+  
+  .form-group { margin-bottom: 10px; }
+  .form-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px; border-radius: 6px;
+    border: 1px solid #0f3460; background: #0f3460;
+    color: #fff; font-size: 15px;
+  }
+  .form-group input:focus, .form-group select:focus { outline: 2px solid #4ecca3; }
+  
+  .modal-btns { display: flex; gap: 8px; margin-top: 15px; }
+  .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+  .btn-save { background: #4ecca3; color: #1a1a2e; }
+  .btn-cancel { background: #555; color: #fff; }
+  .btn-delete { background: #ff4757; color: #fff; }
+  
+  .lock-screen {
+    position: fixed; inset: 0; background: #1a1a2e;
+    z-index: 999; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .lock-screen.hidden { display: none; }
+  .lock-screen .lock-icon { font-size: 60px; margin-bottom: 20px; }
+  .lock-screen h2 { color: #ff6b6b; margin-bottom: 20px; font-size: 18px; text-align: center; }
+  .lock-screen input {
+    width: 100%; max-width: 300px; padding: 15px;
+    border-radius: 10px; border: 2px solid #0f3460;
+    background: #16213e; color: #fff; font-size: 18px;
+    text-align: center; letter-spacing: 3px;
+    margin-bottom: 15px;
+  }
+  .lock-screen input:focus { outline: 2px solid #4ecca3; }
+  .lock-screen button {
+    width: 100%; max-width: 300px; padding: 15px;
+    border-radius: 10px; border: none;
+    background: #4ecca3; color: #1a1a2e;
+    font-size: 16px; font-weight: bold; cursor: pointer;
+  }
+  .lock-screen .error { color: #ff6b6b; font-size: 13px; margin-top: 10px; min-height: 20px; }
+  
+  .chart-container {
+    background: #0f3460; border-radius: 10px;
+    padding: 12px; margin-top: 10px;
+    display: flex; align-items: flex-end;
+    justify-content: space-between;
+    height: 150px; gap: 4px;
+  }
+  .chart-bar {
+    flex: 1; background: #4ecca3;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px; position: relative;
+  }
+  .chart-bar.today { background: #ffd93d; }
+  .chart-bar .value {
+    position: absolute; top: -18px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px; color: #fff; white-space: nowrap;
+  }
+  .chart-bar .day {
+    position: absolute; bottom: -20px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px; color: #aaa; white-space: nowrap;
+  }
+  .chart-wrapper { padding-bottom: 25px; }
+</style>
+</head>
+<body>
+
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-icon">🔐</div>
+  <h2>علوان للحوم المجمدة والفراخ الطازجة</h2>
+  <input type="password" id="passInput" placeholder="••••" maxlength="10" inputmode="numeric">
+  <button onclick="checkPass()">دخول</button>
+  <div class="error" id="passError"></div>
+</div>
+
+<div id="mainContent" style="display:none;">
+
+<h1>🥩 علوان للحوم المجمدة 🐔<span>و الفراخ الطازجة</span></h1>
+
+<div class="stats">
+  <div class="stat-box">
+    <div class="label">إيراد اليوم</div>
+    <div class="value" id="todayRevenue">0</div>
+  </div>
+  <div class="stat-box">
+    <div class="label">ربح اليوم</div>
+    <div class="value" id="todayProfit">0</div>
+  </div>
+  <div class="stat-box">
+    <div class="label">البيوع</div>
+    <div class="value" id="todayCount">0</div>
+  </div>
+</div>
+
+<div class="grid" id="productsGrid"></div>
+
+<div class="section">
+  <h2>📋 آخر العمليات</h2>
+  <div id="logList"><div class="empty">لا توجد عمليات</div></div>
+</div>
+
+<div class="actions">
+  <button class="btn-report" onclick="showReport()">📊 تقرير</button>
+  <button class="btn-month" onclick="showMonthly()">📅 شهري</button>
+  <button class="btn-reset" onclick="resetDay()">🔄 إغلاق</button>
+</div>
+
+<button class="floating-add" onclick="openAddProduct()">+</button>
+
+<div class="modal" id="modal" onclick="if(event.target.id==='modal')closeModal()">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+</div>
+
+<script>
+var PASSWORD = '1234';
+var SESSION_KEY = 'meat_unlocked';
+
+var initialProducts = [
+  { id: 1,  name: 'لحم بقري',   price: 350, cost: 300, stock: 50, minStock: 10 },
+  { id: 2,  name: 'لحم ضاني',   price: 450, cost: 380, stock: 30, minStock: 10 },
+  { id: 3,  name: 'كبدة',       price: 200, cost: 160, stock: 15, minStock: 5  },
+  { id: 4,  name: 'سجق',        price: 180, cost: 140, stock: 20, minStock: 5  },
+  { id: 5,  name: 'فراخ كاملة', price: 90,  cost: 70,  stock: 40, minStock: 10 },
+  { id: 6,  name: 'صدور فراخ',  price: 130, cost: 100, stock: 25, minStock: 8  },
+  { id: 7,  name: 'وراك فراخ',  price: 100, cost: 75,  stock: 30, minStock: 8  },
+  { id: 8,  name: 'دجاج مجمد',  price: 75,  cost: 60,  stock: 35, minStock: 10 },
+  { id: 9,  name: 'حمام',       price: 200, cost: 160, stock: 10, minStock: 3  },
+  { id: 10, name: 'بط',         price: 180, cost: 140, stock: 12, minStock: 3  }
+];
+
+var products = [];
+var todayLog = [];
+var allLogs = [];
+
+function checkPass() {
+  var input = document.getElementById('passInput').value;
+  if (input === PASSWORD) {
+    sessionStorage.setItem(SESSION_KEY, 'yes');
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('mainContent').style.display = 'block';
+    loadData(); render();
+  } else {
+    document.getElementById('passError').textContent = '❌ كلمة السر غلط';
+    document.getElementById('passInput').value = '';
+  }
+}
+
+if (sessionStorage.getItem(SESSION_KEY) === 'yes') {
+  document.getElementById('lockScreen').classList.add('hidden');
+  document.getElementById('mainContent').style.display = 'block';
+  setTimeout(function(){ loadData(); render(); }, 50);
+} else {
+  setTimeout(function(){ document.getElementById('passInput').focus(); }, 300);
+}
+
+document.getElementById('passInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') checkPass();
+});
+
+function getToday() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function getMonthKey() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+var monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function loadData() {
+  try {
+    var p = localStorage.getItem('meat_products_v2');
+    products = p ? JSON.parse(p) : initialProducts.map(function(x){ return Object.assign({}, x); });
+    var l = localStorage.getItem('meat_log_' + getToday());
+    todayLog = l ? JSON.parse(l) : [];
+    var a = localStorage.getItem('meat_all_logs');
+    allLogs = a ? JSON.parse(a) : [];
+  } catch(e) {
+    products = initialProducts.map(function(x){ return Object.assign({}, x); });
+    todayLog = []; allLogs = [];
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem('meat_products_v2', JSON.stringify(products));
+    localStorage.setItem('meat_log_' + getToday(), JSON.stringify(todayLog));
+    localStorage.setItem('meat_all_logs', JSON.stringify(allLogs));
+  } catch(e) { alert('مشكلة في الحفظ'); }
+}
+
+function render() {
+  var grid = document.getElementById('productsGrid');
+  grid.innerHTML = '';
+  products.forEach(function(p) {
+    var isDanger = p.stock <= 0;
+    var isWarning = p.stock > 0 && p.stock <= p.minStock;
+    var cls = isDanger ? 'danger' : (isWarning ? 'warning' : '');
+    var stockClass = isDanger ? 'red' : (isWarning ? 'yellow' : '');
+    var div = document.createElement('div');
+    div.className = 'product ' + cls;
+    div.innerHTML = 
+      '<button class="edit-icon" onclick="openEdit(' + p.id + ')">✏️</button>' +
+      '<div class="name">' + p.name + '</div>' +
+      '<div class="info">سعر: <span>' + p.price + '</span> ج/ك<br>مخزون: <span class="' + stockClass + '">' + p.stock.toFixed(1) + '</span> ك</div>' +
+      '<input type="number" class="qty-input" id="qty_' + p.id + '" placeholder="الكمية (كجم)" step="0.5" min="0.5" ' + (isDanger ? 'disabled' : '') + '>' +
+      '<button class="btn-sell" onclick="sell(' + p.id + ')" ' + (isDanger ? 'disabled' : '') + '>' + (isDanger ? '❌ خلص' : '💰 بيع') + '</button>';
+    grid.appendChild(div);
+  });
+  var rev = 0, prof = 0;
+  todayLog.forEach(function(l){ rev += l.total; prof += l.profit; });
+  document.getElementById('todayRevenue').textContent = rev.toFixed(0);
+  document.getElementById('todayProfit').textContent = prof.toFixed(0);
+  document.getElementById('todayCount').textContent = todayLog.length;
+  var logList = document.getElementById('logList');
+  if (todayLog.length === 0) {
+    logList.innerHTML = '<div class="empty">لا توجد عمليات</div>';
+  } else {
+    var html = '';
+    todayLog.slice().reverse().slice(0, 10).forEach(function(l) {
+      html += '<div class="log-item"><span>' + l.name + ' - ' + l.qty + 'ك = <b>' + l.total.toFixed(0) + ' ج</b></span><span class="time">' + l.time + '</span></div>';
+    });
+    logList.innerHTML = html;
+  }
+}
+
+function sell(id) {
+  var p = null;
+  for (var i = 0; i < products.length; i++) { if (products[i].id === id) { p = products[i]; break; } }
+  if (!p) return;
+  var qtyInput = document.getElementById('qty_' + id);
+  var qty = parseFloat(qtyInput.value);
+  if (!qty || qty <= 0) { alert('اكتب الكمية'); return; }
+  if (qty > p.stock) { alert('الكمية أكبر من المخزون!'); return; }
+  var total = qty * p.price;
+  var profit = qty * (p.price - p.cost);
+  p.stock -= qty;
+  var now = new Date();
+  var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  var entry = { id: p.id, name: p.name, qty: qty, price: p.price, total: total, profit: profit, date: getToday(), month: getMonthKey(), time: timeStr };
+  todayLog.push(entry); allLogs.push(entry);
+  qtyInput.value = '';
+  save(); render();
+}
+
+function openEdit(id) {
+  var p = null;
+  for (var i = 0; i < products.length; i++) { if (products[i].id === id) { p = products[i]; break; } }
+  if (!p) return;
+  var html = '<h3>✏️ تعديل: ' + p.name + '</h3>' +
+    '<div class="form-group"><label>اسم المنتج</label><input id="editName" type="text" value="' + p.name + '"></div>' +
+    '<div class="form-group"><label>سعر البيع (ج/ك)</label><input id="editPrice" type="number" value="' + p.price + '"></div>' +
+    '<div class="form-group"><label>سعر التكلفة (ج/ك)</label><input id="editCost" type="number" value="' + p.cost + '"></div>' +
+    '<div class="form-group"><label>المخزون الحالي (كجم)</label><input id="editStock" type="number" step="0.5" value="' + p.stock + '"></div>' +
+    '<div class="form-group"><label>أقل كمية للتنبيه (كجم)</label><input id="editMin" type="number" value="' + p.minStock + '"></div>' +
+    '<div class="modal-btns"><button class="btn-save" onclick="saveEdit(' + id + ')">💾 حفظ</button><button class="btn-cancel" onclick="closeModal()">إلغاء</button></div>' +
+    '<div class="modal-btns"><button class="btn-delete" onclick="deleteProduct(' + id + ')">🗑️ حذف المنتج</button></div>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modal').classList.add('active');
+}
+
+function saveEdit(id) {
+  var p = null;
+  for (var i = 0; i < products.length; i++) { if (products[i].id === id) { p = products[i]; break; } }
+  if (!p) return;
+  p.name = document.getElementById('editName').value.trim() || p.name;
+  p.price = parseFloat(document.getElementById('editPrice').value) || p.price;
+  p.cost = parseFloat(document.getElementById('editCost').value) || p.cost;
+  p.stock = parseFloat(document.getElementById('editStock').value) || 0;
+  p.minStock = parseFloat(document.getElementById('editMin').value) || 0;
+  save(); render(); closeModal();
+}
+
+function openAddProduct() {
+  var html = '<h3>➕ إضافة منتج جديد</h3>' +
+    '<div class="form-group"><label>اسم المنتج</label><input id="addName" type="text" placeholder="مثال: لحم مفروم"></div>' +
+    '<div class="form-group"><label>سعر البيع (ج/ك)</label><input id="addPrice" type="number" placeholder="100"></div>' +
+    '<div class="form-group"><label>سعر التكلفة (ج/ك)</label><input id="addCost" type="number" placeholder="80"></div>' +
+    '<div class="form-group"><label>المخزون الابتدائي (كجم)</label><input id="addStock" type="number" step="0.5" placeholder="20"></div>' +
+    '<div class="form-group"><label>أقل كمية للتنبيه (كجم)</label><input id="addMin" type="number" placeholder="5"></div>' +
+    '<div class="modal-btns"><button class="btn-save" onclick="addProduct()">➕ إضافة</button><button class="btn-cancel" onclick="closeModal()">إلغاء</button></div>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modal').classList.add('active');
+}
+
+function addProduct() {
+  var name = document.getElementById('addName').value.trim();
+  var price = parseFloat(document.getElementById('addPrice').value);
+  var cost = parseFloat(document.getElementById('addCost').value);
+  var stock = parseFloat(document.getElementById('addStock').value);
+  var min = parseFloat(document.getElementById('addMin').value);
+  if (!name) { alert('اكتب اسم المنتج'); return; }
+  if (!price || price <= 0) { alert('اكتب سعر صحيح'); return; }
+  if (!cost || cost < 0) { cost = 0; }
+  if (isNaN(stock)) { stock = 0; }
+  if (isNaN(min)) { min = 5; }
+  var maxId = 0;
+  products.forEach(function(p){ if (p.id > maxId) maxId = p.id; });
+  products.push({ id: maxId + 1, name: name, price: price, cost: cost, stock: stock, minStock: min });
+  save(); render(); closeModal();
+}
+
+function deleteProduct(id) {
+  if (!confirm('متأكد إنك عايز تحذف المنتج ده؟')) return;
+  products = products.filter(function(p){ return p.id !== id; });
+  save(); render(); closeModal();
+}
+
+function showReport() {
+  var totalRev = 0, totalProf = 0;
+  allLogs.forEach(function(l){ totalRev += l.total; totalProf += l.profit; });
+  var byProduct = {};
+  allLogs.forEach(function(l) {
+    if (!byProduct[l.name]) byProduct[l.name] = { qty: 0, total: 0, profit: 0 };
+    byProduct[l.name].qty += l.qty;
+    byProduct[l.name].total += l.total;
+    byProduct[l.name].profit += l.profit;
+  });
+  var lowStock = products.filter(function(p){ return p.stock <= p.minStock; });
+  var html = '<h3>📊 تقرير شامل</h3>' +
+    '<p><b>إجمالي الإيرادات:</b> ' + totalRev.toFixed(0) + ' جنيه</p>' +
+    '<p><b>إجمالي الأرباح:</b> ' + totalProf.toFixed(0) + ' جنيه</p>' +
+    '<p><b>عدد العمليات:</b> ' + allLogs.length + '</p><hr><h3>🏆 الأكثر مبيعًا</h3>';
+  var arr = [];
+  for (var k in byProduct) arr.push([k, byProduct[k]]);
+  arr.sort(function(a,b){ return b[1].total - a[1].total; });
+  arr.slice(0, 5).forEach(function(item) { html += '<p>• ' + item[0] + ': ' + item[1].qty.toFixed(1) + 'ك - ' + item[1].total.toFixed(0) + ' ج</p>'; });
+  if (lowStock.length > 0) {
+    html += '<hr><h3>⚠️ منتجات محتاجة تموين</h3>';
+    lowStock.forEach(function(p) { html += '<p>• ' + p.name + ': باقي ' + p.stock.toFixed(1) + ' ك فقط</p>'; });
+  }
+  html += '<div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">إغلاق</button></div>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modal').classList.add('active');
+}
+
+function showMonthly() {
+  var monthsSet = {};
+  allLogs.forEach(function(l){ if (l.month) monthsSet[l.month] = true; });
+  monthsSet[getMonthKey()] = true;
+  var monthsArr = [];
+  for (var m in monthsSet) monthsArr.push(m);
+  monthsArr.sort().reverse();
+  var currentMonth = getMonthKey();
+  var monthLogs = allLogs.filter(function(l){ return l.month === currentMonth; });
+  var totalRev = 0, totalProf = 0, totalQty = 0;
+  monthLogs.forEach(function(l){ totalRev += l.total; totalProf += l.profit; totalQty += l.qty; });
+  var days = [];
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date();
+    d.setDate(d.getDate() - i);
+    var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var dayName = ['أحد','اثنين','ثلاثاء','أربع','خميس','جمعة','سبت'][d.getDay()];
+    days.push({ key: key, name: dayName, total: 0 });
+  }
+  allLogs.forEach(function(l){ days.forEach(function(d){ if (d.key === l.date) d.total += l.total; }); });
+  var maxVal = 0;
+  days.forEach(function(d){ if (d.total > maxVal) maxVal = d.total; });
+  var chartHtml = '<div class="chart-wrapper"><div class="chart-container">';
+  days.forEach(function(d, idx) {
+    var height = maxVal > 0 ? Math.max(4, (d.total / maxVal) * 100) : 4;
+    var isToday = idx === days.length - 1;
+    chartHtml += '<div class="chart-bar' + (isToday ? ' today' : '') + '" style="height:' + height + '%"><div class="value">' + (d.total > 0 ? d.total.toFixed(0) : '') + '</div><div class="day">' + d.name + '</div></div>';
+  });
+  chartHtml += '</div></div>';
+  var byProduct = {};
+  monthLogs.forEach(function(l) {
+    if (!byProduct[l.name]) byProduct[l.name] = { qty: 0, total: 0 };
+    byProduct[l.name].qty += l.qty; byProduct[l.name].total += l.total;
+  });
+  var arr = [];
+  for (var k in byProduct) arr.push([k, byProduct[k]]);
+  arr.sort(function(a,b){ return b[1].total - a[1].total; });
+  var now = new Date();
+  var monthName = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+  var monthOptions = '';
+  monthsArr.forEach(function(m) {
+    var parts = m.split('-');
+    var mn = monthNames[parseInt(parts[1]) - 1] + ' ' + parts[0];
+    monthOptions += '<option value="' + m + '"' + (m === currentMonth ? ' selected' : '') + '>' + mn + '</option>';
+  });
+  var html = '<h3>📅 التقرير الشهري</h3>' +
+    '<div class="form-group"><label>اختر الشهر</label><select id="monthSelect" onchange="loadMonth(this.value)">' + monthOptions + '</select></div>' +
+    '<div id="monthData">' +
+      '<p><b>شهر:</b> ' + monthName + '</p>' +
+      '<p><b>الإيرادات:</b> ' + totalRev.toFixed(0) + ' ج</p>' +
+      '<p><b>الأرباح:</b> ' + totalProf.toFixed(0) + ' ج</p>' +
+      '<p><b>الكمية المبيعة:</b> ' + totalQty.toFixed(1) + ' كجم</p>' +
+      '<p><b>عدد العمليات:</b> ' + monthLogs.length + '</p>' +
+      '<hr><h3>📈 مبيعات آخر 7 أيام</h3>' + chartHtml + '<hr><h3>🏆 الأكثر مبيعًا الشهر ده</h3>';
+  if (arr.length === 0) { html += '<p style="color:#666">لا توجد مبيعات</p>'; }
+  else { arr.slice(0, 5).forEach(function(item) { html += '<p>• ' + item[0] + ': ' + item[1].qty.toFixed(1) + 'ك - ' + item[1].total.toFixed(0) + ' ج</p>'; }); }
+  html += '</div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">إغلاق</button></div>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modal').classList.add('active');
+}
+
+function loadMonth(monthKey) {
+  var monthLogs = allLogs.filter(function(l){ return l.month === monthKey; });
+  var totalRev = 0, totalProf = 0, totalQty = 0;
+  monthLogs.forEach(function(l){ totalRev += l.total; totalProf += l.profit; totalQty += l.qty; });
+  var byProduct = {};
+  monthLogs.forEach(function(l) {
+    if (!byProduct[l.name]) byProduct[l.name] = { qty: 0, total: 0 };
+    byProduct[l.name].qty += l.qty; byProduct[l.name].total += l.total;
+  });
+  var arr = [];
+  for (var k in byProduct) arr.push([k, byProduct[k]]);
+  arr.sort(function(a,b){ return b[1].total - a[1].total; });
+  var parts = monthKey.split('-');
+  var monthName = monthNames[parseInt(parts[1]) - 1] + ' ' + parts[0];
+  var html = '<p><b>شهر:</b> ' + monthName + '</p>' +
+    '<p><b>الإيرادات:</b> ' + totalRev.toFixed(0) + ' ج</p>' +
+    '<p><b>الأرباح:</b> ' + totalProf.toFixed(0) + ' ج</p>' +
+    '<p><b>الكمية المبيعة:</b> ' + totalQty.toFixed(1) + ' كجم</p>' +
+    '<p><b>عدد العمليات:</b> ' + monthLogs.length + '</p>' +
+    '<hr><h3>🏆 الأكثر مبيعًا</h3>';
+  if (arr.length === 0) { html += '<p style="color:#666">لا توجد مبيعات في الشهر ده</p>'; }
+  else { arr.slice(0, 5).forEach(function(item) { html += '<p>• ' + item[0] + ': ' + item[1].qty.toFixed(1) + 'ك - ' + item[1].total.toFixed(0) + ' ج</p>'; }); }
+  document.getElementById('monthData').innerHTML = html;
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+
+function resetDay() {
+  if (
