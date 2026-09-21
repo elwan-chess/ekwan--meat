@@ -1,0 +1,12 @@
+{
+  "name": "علوان للحوم المجمدة والفراخ الطازجة",
+  "short_name": "علوان",
+  "description": "نظام حسابات محل علوان للحوم المجمدة والفراخ الطازجة",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1a2e",
+  "theme_color": "#ff6b6b",
+  "lang": "ar",
+  "dir": "rtl"
+}
